@@ -9,7 +9,8 @@
   </p>
   <p align="center">
     <a href="https://kotlinlang.org"><img src="https://img.shields.io/badge/Kotlin-2.1.10-7F52FF.svg?logo=kotlin&logoColor=white" alt="Kotlin"></a>
-    <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-green.svg" alt="License"></a>
+    <a href="https://central.sonatype.com/artifact/io.github.waclabs/wac-discovery"><img src="https://img.shields.io/maven-central/v/io.github.waclabs/wac-discovery.svg?label=Maven%20Central" alt="Maven Central"></a>
+    <a href="LICENSE"><img src="https://img.shields.io/badge/License-Apache%202.0-blue.svg" alt="License"></a>
     <a href="#-supported-platforms"><img src="https://img.shields.io/badge/Platforms-Android%20%7C%20iOS%20%7C%20JVM-blue.svg" alt="Platforms"></a>
   </p>
 </p>
@@ -52,33 +53,27 @@ That's it. The library scans via both **SSDP** (UPnP) and **mDNS** simultaneousl
 
 ## 📥 Installation
 
-### Gradle (JitPack)
+### Maven Central
 
 ```kotlin
-// settings.gradle.kts
-dependencyResolutionManagement {
-    repositories {
-        maven("https://jitpack.io")
-        mavenCentral()
-    }
-}
-
 // build.gradle.kts (your KMP module)
 kotlin {
     sourceSets {
         commonMain.dependencies {
-            implementation("com.wac.kmm:wac-discovery:0.2.0")
+            implementation("io.github.waclabs:wac-discovery:0.2.1")
         }
     }
 }
 ```
+
+> **Note:** The library is published to **Maven Central** — no extra repository configuration needed. All platforms (Android, iOS, JVM) are available as auto-resolved KMP artifacts.
 
 ---
 
 ## 📱 Supported Platforms
 
 | Platform | SSDP Implementation | mDNS Implementation |
-|----------|--------------------|--------------------|
+|----------|--------------------|-------------------|
 | **Android** (minSdk 21) | `java.net.MulticastSocket` | `android.net.nsd.NsdManager` |
 | **iOS** (arm64, simulatorArm64, x64) | POSIX BSD sockets | `NSNetServiceBrowser` |
 | **JVM** (Desktop) | `java.net.MulticastSocket` | `JmDNS` |
@@ -164,7 +159,7 @@ discovery.discover().collect { device ->
 ### What `DeviceInfo` contains
 
 | Field | Example |
-|-------|---------|
+|-------|---------||
 | `friendlyName` | `"Living Room TV"` |
 | `manufacturer` | `"Samsung Electronics"` |
 | `manufacturerUrl` | `"http://www.samsung.com"` |
@@ -243,6 +238,21 @@ DeviceFilter.byAddress(Regex("192\\.168\\.50\\..*"))
 ---
 
 ## ⚙️ Advanced Configuration
+
+### Custom Configuration
+
+```kotlin
+discovery.discover(
+    DiscoveryConfig(
+        protocols = setOf(DiscoveryProtocol.SSDP, DiscoveryProtocol.MDNS),
+        timeout = 15.seconds,              // discovery duration
+        resolveDeviceInfo = true,           // fetch UPnP descriptions
+        resolveTimeout = 3.seconds,         // HTTP timeout per device
+        ssdpSearchTarget = SsdpSearchTargets.ROOT_DEVICE,
+        ssdpMx = 5,
+    )
+)
+```
 
 ### SSDP-Only Scan
 
@@ -487,5 +497,17 @@ No additional setup required. mDNS uses the bundled `JmDNS` library.
 ## 📜 License
 
 ```
-Copyright 2025 WacLabs — Licensed under the Apache License 2.0
+Copyright 2025 WacLabs
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 ```

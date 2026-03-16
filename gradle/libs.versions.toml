@@ -14,3 +14,4 @@ jmdns = { module = "org.jmdns:jmdns", version.ref = "jmdns" }
 kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 android-library = { id = "com.android.library", version.ref = "agp" }
+vanniktech-publish = { id = "com.vanniktech.maven.publish", version = "0.30.0" }
