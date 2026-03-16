@@ -1,0 +1,20 @@
+# Build outputs
+build/
+.gradle/
+
+# IDE
+.idea/
+*.iml
+.DS_Store
+
+# Kotlin
+*.class
+*.jar
+*.war
+*.aar
+
+# Local properties
+local.properties
+
+# Konan
+.konan/
