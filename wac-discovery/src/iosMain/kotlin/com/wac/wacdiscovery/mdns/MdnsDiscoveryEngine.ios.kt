@@ -5,13 +5,10 @@ package com.wac.wacdiscovery.mdns
 import com.wac.wacdiscovery.DiscoveredDevice
 import com.wac.wacdiscovery.DiscoveryProtocol
 import kotlinx.cinterop.ExperimentalForeignApi
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.IO
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
-import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.launch
 import platform.Foundation.NSData
 import platform.Foundation.NSNetService
@@ -20,6 +17,7 @@ import platform.Foundation.NSNetServiceBrowserDelegateProtocol
 import platform.Foundation.NSNetServiceDelegateProtocol
 import platform.Foundation.NSRunLoop
 import platform.Foundation.NSRunLoopCommonModes
+import platform.Foundation.NSRunLoop.Companion.mainRunLoop
 import platform.Foundation.NSString
 import platform.Foundation.NSUTF8StringEncoding
 import platform.Foundation.create
@@ -30,6 +28,8 @@ internal actual class MdnsDiscoveryEngine actual constructor() {
 
     private val browsers = mutableListOf<NSNetServiceBrowser>()
     private val pendingServices = mutableListOf<NSNetService>()
+    private val browserDelegates = mutableListOf<NSNetServiceBrowserDelegateProtocol>()
+    private val serviceDelegates = mutableMapOf<String, NSNetServiceDelegateProtocol>()
 
     actual fun discover(serviceTypes: List<String>, timeout: Duration): Flow<DiscoveredDevice> = callbackFlow {
         val seenDevices = mutableSetOf<String>()
@@ -86,6 +86,7 @@ internal actual class MdnsDiscoveryEngine actual constructor() {
                             trySend(device)
                         }
                         pendingServices.remove(sender)
+                        serviceDelegates.remove(serviceKey(sender))
                     }
 
                     override fun netService(
@@ -93,8 +94,10 @@ internal actual class MdnsDiscoveryEngine actual constructor() {
                         didNotResolve: Map<Any?, *>,
                     ) {
                         pendingServices.remove(sender)
+                        serviceDelegates.remove(serviceKey(sender))
                     }
                 }
+                serviceDelegates[serviceKey(service)] = serviceDelegate
                 service.delegate = serviceDelegate
                 service.resolveWithTimeout(5.0)
             }
@@ -116,8 +119,9 @@ internal actual class MdnsDiscoveryEngine actual constructor() {
                 ) { }
             }
 
+            browserDelegates.add(browserDelegate)
             browser.delegate = browserDelegate
-            browser.scheduleInRunLoop(NSRunLoop.currentRunLoop, forMode = NSRunLoopCommonModes)
+            browser.scheduleInRunLoop(mainRunLoop, forMode = NSRunLoopCommonModes)
             browser.searchForServicesOfType(type, inDomain = "local.")
             browsers.add(browser)
         }
@@ -134,8 +138,10 @@ internal actual class MdnsDiscoveryEngine actual constructor() {
             }
             browsers.clear()
             pendingServices.clear()
+            browserDelegates.clear()
+            serviceDelegates.clear()
         }
-    }.flowOn(Dispatchers.IO)
+    }
 
     actual fun close() {
         for (b in browsers) {
@@ -143,5 +149,10 @@ internal actual class MdnsDiscoveryEngine actual constructor() {
             b.delegate = null
         }
         browsers.clear()
+        pendingServices.clear()
+        browserDelegates.clear()
+        serviceDelegates.clear()
     }
+
+    private fun serviceKey(service: NSNetService): String = "${service.type}|${service.name}"
 }
