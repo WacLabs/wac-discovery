@@ -1,5 +1,5 @@
 <p align="center">
-  <h1 align="center">📡 WAC WAC Discovery</h1>
+  <h1 align="center">📡 WAC Discovery</h1>
   <p align="center">
     <strong>Kotlin Multiplatform library for network device discovery</strong>
   </p>
