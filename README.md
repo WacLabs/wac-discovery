@@ -60,7 +60,7 @@ That's it. The library scans via both **SSDP** (UPnP) and **mDNS** simultaneousl
 kotlin {
     sourceSets {
         commonMain.dependencies {
-            implementation("io.github.waclabs:wac-discovery:0.2.1")
+            implementation("io.github.waclabs:wac-discovery:0.2.2")
         }
     }
 }
