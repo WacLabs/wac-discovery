@@ -18,3 +18,4 @@ rootProject.name = "wac-discovery"
 
 include(":wac-discovery")
 include(":example")
+include(":sample-app")
